@@ -1,27 +1,29 @@
 from collections import Counter
 import feedparser
-import nltk
 
-feeds = [ "http://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml" ]
+feedUrls = [ "http://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml" ]
+feeds = []
 
-titleWords = []
-wordFreq = {}
+def downloadFeeds():
+    for feedUrl in feedUrls:
+        print "Parsing feed" , feedUrl
+        rssData = feedparser.parse( feedUrl )
 
-for feed in feeds:
-    print "Parsing feed..."
-    rssData = feedparser.parse( feed )
-    for item in rssData['items']:
-        title = item['title']
-        lowerWords = [ x.lower() for x in nltk.word_tokenize( title ) if len(x) > 1 ]
-        for word in lowerWords:
-            if word in wordFreq:
-                wordFreq[ word ] = wordFreq[ word ] + 1
-            else:
-                wordFreq[ word ] = 1
-        titleWords.extend( lowerWords )
+        feed = Feed( feedUrl )
 
-def getTitleWords():
-    return titleWords
+        for item in rssData['items']:
+            title = item['title']
+            feed.addTitle( title )
 
-def getWordFrequencies():
-    return Counter(titleWords)
+        feeds.append(feed)
+
+    return feeds
+    
+# Feed class
+class Feed:
+    def __init__(self, feedUrl):
+        self.feedUrl = feedUrl
+        self.titles = []
+
+    def addTitle(self, title):
+        self.titles.append(title)
